@@ -122,5 +122,57 @@ export const Repository = {
       todayTotal,
       monthlyTotal
     };
+  },
+
+  // Backup & Restore
+  async exportBackupJSON(): Promise<string> {
+    const bills = await db.bills.toArray();
+    const parties = await db.parties.toArray();
+    const settings = await this.getSettings();
+
+    const backupPayload = {
+      version: 1,
+      appName: 'K.M.S. SEA FOODS BILLING',
+      exportedAt: new Date().toISOString(),
+      data: {
+        bills,
+        parties,
+        settings
+      }
+    };
+
+    return JSON.stringify(backupPayload, null, 2);
+  },
+
+  async importRestoreJSON(jsonString: string): Promise<{ billsCount: number; partiesCount: number }> {
+    const parsed = JSON.parse(jsonString);
+    if (!parsed || !parsed.data) {
+      throw new Error('Invalid backup file format. Missing data object.');
+    }
+
+    const { bills = [], parties = [], settings } = parsed.data;
+
+    await db.transaction('rw', db.bills, db.parties, db.settings, async () => {
+      // Clear existing records
+      await db.bills.clear();
+      await db.parties.clear();
+      await db.settings.clear();
+
+      // Bulk insert restored records
+      if (bills.length > 0) {
+        await db.bills.bulkAdd(bills);
+      }
+      if (parties.length > 0) {
+        await db.parties.bulkAdd(parties);
+      }
+      if (settings) {
+        await db.settings.add(settings);
+      }
+    });
+
+    return {
+      billsCount: bills.length,
+      partiesCount: parties.length
+    };
   }
 };

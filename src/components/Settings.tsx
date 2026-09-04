@@ -187,6 +187,88 @@ export const SettingsView: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {/* Backup & Restore Data Section */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+        <h3 className="text-base font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-3">
+          <Save className="w-5 h-5 text-blue-700" />
+          Backup & Restore Application Data
+        </h3>
+        <p className="text-xs text-slate-500">
+          Export all your bills, farmers, suppliers, and sequence numbers into a secure backup file, or restore from a previous backup.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          {/* Backup Card */}
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+            <h4 className="font-bold text-sm text-slate-800">BACKUP DATA</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Download all current data (bills, customers, settings) as a single JSON file. Save this to Google Drive, WhatsApp, or your computer for safekeeping.
+            </p>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const jsonStr = await Repository.exportBackupJSON();
+                  const blob = new Blob([jsonStr], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  const dateStr = new Date().toISOString().split('T')[0];
+                  a.href = url;
+                  a.download = `KMS_SeaFoods_Backup_${dateStr}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch (err) {
+                  console.error('Backup failed:', err);
+                  alert('Failed to generate backup.');
+                }
+              }}
+              className="w-full py-2.5 px-4 bg-[#093563] hover:bg-blue-900 text-white text-xs font-bold rounded-lg shadow-sm transition-all text-center flex items-center justify-center gap-2"
+            >
+              📥 Download Backup JSON
+            </button>
+          </div>
+
+          {/* Restore Card */}
+          <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/40 space-y-3">
+            <h4 className="font-bold text-sm text-amber-900">RESTORE DATA</h4>
+            <p className="text-xs text-amber-800 leading-relaxed">
+              Upload a previously downloaded JSON backup file. <span className="font-bold text-red-600">Warning:</span> This will replace existing records with the backup file data.
+            </p>
+            <label className="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all text-center flex items-center justify-center gap-2 cursor-pointer">
+              📤 Select Backup JSON File
+              <input
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
+                  const confirmed = window.confirm(
+                    'Are you sure you want to restore data from this backup file? This will replace current records.'
+                  );
+                  if (!confirmed) {
+                    e.target.value = '';
+                    return;
+                  }
+
+                  try {
+                    const text = await file.text();
+                    const res = await Repository.importRestoreJSON(text);
+                    alert(`Data successfully restored! Restored ${res.billsCount} bills and ${res.partiesCount} parties.`);
+                    window.location.reload();
+                  } catch (err: any) {
+                    console.error('Restore failed:', err);
+                    alert(`Failed to restore data: ${err.message || 'Invalid file.'}`);
+                  }
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

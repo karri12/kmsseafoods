@@ -19,14 +19,42 @@ export const BillHistory: React.FC<BillHistoryProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
+  const [dateFilter, setDateFilter] = useState<'ALL' | 'TODAY' | 'YESTERDAY' | 'WEEK' | 'MONTH' | 'CUSTOM'>('ALL');
+  const [customDate, setCustomDate] = useState('');
+
   useEffect(() => {
     loadBills();
-  }, [searchQuery]);
+  }, [searchQuery, dateFilter, customDate]);
 
   async function loadBills() {
     setIsLoading(true);
     try {
-      const results = await Repository.searchBills(searchQuery);
+      let results = await Repository.searchBills(searchQuery);
+
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      const oneWeekAgo = new Date(now);
+      oneWeekAgo.setDate(now.getDate() - 7);
+
+      const monthStr = todayStr.substring(0, 7);
+
+      if (dateFilter === 'TODAY') {
+        results = results.filter((b) => b.date === todayStr);
+      } else if (dateFilter === 'YESTERDAY') {
+        results = results.filter((b) => b.date === yesterdayStr);
+      } else if (dateFilter === 'WEEK') {
+        results = results.filter((b) => new Date(b.date) >= oneWeekAgo);
+      } else if (dateFilter === 'MONTH') {
+        results = results.filter((b) => b.date.startsWith(monthStr));
+      } else if (dateFilter === 'CUSTOM' && customDate) {
+        results = results.filter((b) => b.date === customDate);
+      }
+
       setBills(results);
     } catch (err) {
       console.error('Error searching bills:', err);
@@ -63,7 +91,7 @@ export const BillHistory: React.FC<BillHistoryProps> = ({
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
         <div className="relative">
           <Search className="w-5 h-5 absolute left-3.5 top-3 text-slate-400" />
           <input
@@ -73,6 +101,46 @@ export const BillHistory: React.FC<BillHistoryProps> = ({
             placeholder="Search by Bill No, Farmer Name, Supplier Name, or Date (YYYY-MM-DD)..."
             className="w-full pl-11 pr-4 py-2.5 text-sm font-medium text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white"
           />
+        </div>
+
+        {/* Date Filter Buttons */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="text-xs font-bold text-slate-500 flex items-center gap-1 mr-1">
+            <Filter className="w-3.5 h-3.5" /> Date:
+          </span>
+
+          {(['ALL', 'TODAY', 'YESTERDAY', 'WEEK', 'MONTH', 'CUSTOM'] as const).map((filter) => {
+            const labels = {
+              ALL: 'All Time',
+              TODAY: 'Today',
+              YESTERDAY: 'Yesterday',
+              WEEK: 'This Week',
+              MONTH: 'This Month',
+              CUSTOM: 'Custom Date'
+            };
+            return (
+              <button
+                key={filter}
+                onClick={() => setDateFilter(filter)}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                  dateFilter === filter
+                    ? 'bg-blue-700 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {labels[filter]}
+              </button>
+            );
+          })}
+
+          {dateFilter === 'CUSTOM' && (
+            <input
+              type="date"
+              value={customDate}
+              onChange={(e) => setCustomDate(e.target.value)}
+              className="ml-2 px-2.5 py-1 text-xs font-medium border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+            />
+          )}
         </div>
       </div>
 

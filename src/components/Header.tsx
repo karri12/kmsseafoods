@@ -160,12 +160,22 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
 
         <button
           onClick={() => onNavigate('REPORTS')}
-          className={`p-2 text-[10px] font-bold flex flex-col items-center gap-0.5 ${
+          className={`p-1.5 text-[10px] font-bold flex flex-col items-center gap-0.5 ${
             currentView === 'REPORTS' ? 'text-white' : 'text-blue-300'
           }`}
         >
           <BarChart3 className="w-4 h-4" />
           Reports
+        </button>
+
+        <button
+          onClick={() => onNavigate('SETTINGS')}
+          className={`p-1.5 text-[10px] font-bold flex flex-col items-center gap-0.5 ${
+            currentView === 'SETTINGS' ? 'text-white' : 'text-blue-300'
+          }`}
+        >
+          <Settings className="w-4 h-4" />
+          Settings
         </button>
       </div>
     </header>

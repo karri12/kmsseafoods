@@ -23,15 +23,15 @@ export const NewBill: React.FC<NewBillProps> = ({ editBill, onSaveSuccess, onCan
   const [items, setItems] = useState<BillItem[]>([
     {
       id: '1',
-      particulars: 'Vannamei Prawns',
-      count: 169,
-      kgs: 1340,
-      gms: 200,
-      rate: 153,
-      weight: 1340.2,
-      amount: 205050.6,
-      rs: 205050,
-      ps: 60
+      particulars: '',
+      count: '',
+      kgs: '',
+      gms: '',
+      rate: '',
+      weight: 0,
+      amount: 0,
+      rs: 0,
+      ps: 0
     }
   ]);
 
@@ -62,7 +62,7 @@ export const NewBill: React.FC<NewBillProps> = ({ editBill, onSaveSuccess, onCan
       setItems([
         {
           id: Date.now().toString(),
-          particulars: 'Vannamei Prawns',
+          particulars: '',
           count: '',
           kgs: '',
           gms: '',
