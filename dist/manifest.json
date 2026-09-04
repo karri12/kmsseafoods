@@ -1,0 +1,17 @@
+{
+  "name": "K.M.S. SEA FOODS Bill Generator",
+  "short_name": "KMS Bills",
+  "description": "Offline Weighment Slip & Bill Generation for K.M.S. Sea Foods",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d3b66",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
